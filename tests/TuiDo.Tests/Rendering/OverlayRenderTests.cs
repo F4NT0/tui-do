@@ -206,8 +206,8 @@ public class DataLocationRenderTests
         var screen = new TestApp().Press('o').Screen();
 
         Assert.Contains("Data location", screen);
-        Assert.Contains(@"C:\data\tui-do\tasks.json", screen);
-        Assert.Contains(@"C:\data\tui-do\lists.json", screen);
+        Assert.Contains(Path.Combine(InMemoryRepository.Directory, "tasks.json"), screen);
+        Assert.Contains(Path.Combine(InMemoryRepository.Directory, "lists.json"), screen);
         Assert.Contains("Enter: open folder", screen);
     }
 
@@ -225,7 +225,7 @@ public class DataLocationRenderTests
     {
         var app = new TestApp().Press('o').Enter();
 
-        Assert.Equal([@"C:\data\tui-do"], app.Folders.Opened);
+        Assert.Equal([InMemoryRepository.Directory], app.Folders.Opened);
         var screen = app.Screen();
         Assert.Contains("Opened data folder", screen);
         Assert.DoesNotContain("Data location", screen);

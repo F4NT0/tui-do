@@ -70,9 +70,11 @@ internal sealed class FakeEditorLauncher : IEditorLauncher
 
 internal sealed class InMemoryRepository : ITodoRepository
 {
-    public string ItemsPath => @"C:\data\tui-do\tasks.json";
+    public static readonly string Directory = Path.Combine("data", "tui-do");
 
-    public string ListsPath => @"C:\data\tui-do\lists.json";
+    public string ItemsPath => Path.Combine(Directory, "tasks.json");
+
+    public string ListsPath => Path.Combine(Directory, "lists.json");
 
     public List<TodoItem> Items { get; } = [];
 
