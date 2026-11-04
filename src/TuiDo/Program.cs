@@ -15,6 +15,12 @@ Console.InputEncoding = Encoding.UTF8;
 if (CliApp.IsCliCommand(args))
     return await new CliApp(AnsiConsole.Console, new GitHubReleaseChecker(), Installer.CreateDefault(AnsiConsole.Console), new ConsoleKeyReader()).RunAsync(args);
 
+if (!Console.IsInputRedirected && !SplashScreen.Show(AnsiConsole.Console, new ConsoleKeyReader()))
+{
+    try { AnsiConsole.Clear(); } catch { }
+    return 0;
+}
+
 var terminal = new ConsoleTerminal();
 var keys = new ConsoleKeySource();
 var clock = new SystemClock();

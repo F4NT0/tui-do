@@ -85,6 +85,31 @@ public class CliTests
     }
 
     [Theory]
+    [InlineData(ConsoleKey.Enter, true)]
+    [InlineData(ConsoleKey.Escape, false)]
+    public void Splash_shows_logo_description_and_version_and_waits_for_a_choice(ConsoleKey key, bool start)
+    {
+        var console = new TestConsole().Width(100);
+
+        Assert.Equal(start, SplashScreen.Show(console, new FakeKeyReader(key)));
+
+        Assert.Contains("████████╗██╗", console.Output);
+        Assert.Contains("Terminal-native to-do manager", console.Output);
+        Assert.Contains("V1.0.0", console.Output);
+        Assert.Contains("Start tuido", console.Output);
+    }
+
+    [Fact]
+    public void Installer_banner_uses_the_ansi_shadow_logo()
+    {
+        var console = new TestConsole().Width(100);
+
+        Logo.Write(console);
+
+        Assert.Contains("╚══██╔══╝██║", console.Output);
+    }
+
+    [Theory]
     [InlineData("v1.1.0", "1.0.0", true)]
     [InlineData("1.0.0", "1.0.0", false)]
     [InlineData("v0.9.0", "1.0.0", false)]

@@ -109,7 +109,7 @@ internal sealed class Installer(IAnsiConsole console, string installDir, string 
 
     private void Banner(string subtitle, string description)
     {
-        console.Write(new FigletText("tuido").Color(Color.DeepSkyBlue1));
+        Logo.Write(console);
         console.MarkupLine($"[bold {Theme.Accent}]{subtitle}[/] [grey]v{AppInfo.Version} - {description}[/]\n");
     }
 

@@ -23,9 +23,9 @@ jobs:
       matrix: ${{ steps.discover.outputs.matrix }}
       count: ${{ steps.discover.outputs.count }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
           cache: true
@@ -73,9 +73,9 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
           cache: true
@@ -107,9 +107,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
 
