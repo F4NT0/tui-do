@@ -21,3 +21,4 @@ C:\Users\Gabriel_Stundner\AppData\Local\Temp\tuido-check\TuiDo.deps.json
 C:\Users\Gabriel_Stundner\AppData\Local\Temp\tuido-check\TuiDo.runtimeconfig.json
 C:\Users\Gabriel_Stundner\AppData\Local\Temp\tuido-check\TuiDo.dll
 C:\Users\Gabriel_Stundner\AppData\Local\Temp\tuido-check\TuiDo.pdb
+C:\Users\Gabriel_Stundner\source\repos\GITHUB\tui-do\obj\Debug\net10.0\TuiDo.sourcelink.json

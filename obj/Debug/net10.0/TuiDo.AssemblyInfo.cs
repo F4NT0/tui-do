@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TuiDo")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0ebf3b5d43ec5f26d9d30f586824fcdddcb0b11e")]
 [assembly: System.Reflection.AssemblyProductAttribute("TuiDo")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TuiDo")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

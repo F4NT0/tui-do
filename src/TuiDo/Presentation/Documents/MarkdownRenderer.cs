@@ -3,9 +3,11 @@ using System.Text.RegularExpressions;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 
+namespace TuiDo.Presentation.Documents;
+
 // Markdown renderer modeled on clidocs (highlight.go): same palette, boxed code
 // blocks with language label + line numbers, grid tables, keyword/icon colors.
-static class Md
+internal static class MarkdownRenderer
 {
     const string Border = "#6e7681", Orange = "#e8912d", Green = "#3fb950", LightBlue = "#a5d6ff", Blue = "#58a6ff";
 
@@ -212,27 +214,5 @@ static class Md
             else sb.Append(v);
         }
         return sb.ToString();
-    }
-}
-
-class ScrollView(IRenderable inner, int visible, int scroll) : Renderable
-{
-    public int Total { get; private set; }
-    public int Visible => visible;
-    public int Offset { get; private set; }
-
-    protected override Measurement Measure(RenderOptions options, int maxWidth) => new(maxWidth, maxWidth);
-
-    protected override IEnumerable<Segment> Render(RenderOptions options, int maxWidth)
-    {
-        var lines = Segment.SplitLines(inner.Render(options with { Height = null }, maxWidth));
-        Total = lines.Count;
-        Offset = Math.Clamp(scroll, 0, Math.Max(0, Total - Math.Max(1, visible)));
-        var win = lines.Skip(Offset).Take(Math.Max(1, visible)).ToList();
-        for (int i = 0; i < win.Count; i++)
-        {
-            foreach (var s in win[i]) yield return s;
-            if (i < win.Count - 1) yield return Segment.LineBreak;
-        }
     }
 }

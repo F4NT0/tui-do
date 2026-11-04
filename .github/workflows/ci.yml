@@ -1,0 +1,126 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  # First run: restore + build once and discover every test, so the next stage can fan out one job per test.
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.discover.outputs.matrix }}
+      count: ${{ steps.discover.outputs.count }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: |
+            src/TuiDo/TuiDo.csproj
+            tests/TuiDo.Tests/TuiDo.Tests.csproj
+
+      - name: Restore
+        run: dotnet restore TuiDo.slnx
+
+      - name: Build
+        run: dotnet build TuiDo.slnx --no-restore -c Release
+
+      - name: Discover tests
+        id: discover
+        run: |
+          # `--list-tests` prints "    Namespace.Class.Method" (theories add "(args)"). Theory cases of one method share a job.
+          dotnet test TuiDo.slnx --no-build -c Release --list-tests \
+            | grep -E '^\s+TuiDo\.Tests\.' | sed 's/^ *//' > all-tests.txt
+
+          matrix=$(jq -R -s -c '
+            split("\n") | map(select(length > 0))
+            | map({base: (split("(")[0]), theory: contains("(")})
+            | unique_by(.base)
+            | map({
+                name: (.base | split(".") | .[-2:] | join(" / ")),
+                filter: (if .theory then "FullyQualifiedName~" + .base else "FullyQualifiedName=" + .base end)
+              })
+            | {include: .}' all-tests.txt)
+
+          count=$(echo "$matrix" | jq '.include | length')
+          echo "Discovered $count test methods"
+          if [ "$count" -eq 0 ]; then echo "No tests found" >&2; exit 1; fi
+          if [ "$count" -gt 256 ]; then echo "A matrix is limited to 256 jobs; split it by class instead" >&2; exit 1; fi
+
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+
+  # Fan-out: one job (and one green check in the graph) per test method.
+  test:
+    name: ${{ matrix.name }}
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.build.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: |
+            src/TuiDo/TuiDo.csproj
+            tests/TuiDo.Tests/TuiDo.Tests.csproj
+
+      - name: Run test
+        run: >
+          dotnet test TuiDo.slnx -c Release
+          --filter "${{ matrix.filter }}"
+          --logger "console;verbosity=normal"
+
+  # Fan-in: a single required check that is green only when every test job passed.
+  tests-passed:
+    name: all tests passed
+    needs: [build, test]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check results
+        run: |
+          echo "build: ${{ needs.build.result }}, tests: ${{ needs.test.result }} (${{ needs.build.outputs.count }} test methods)"
+          [ "${{ needs.build.result }}" = "success" ] && [ "${{ needs.test.result }}" = "success" ]
+
+  # Smoke test for scripts/test-report.cs: it must run end to end and its exit code must reflect the test result.
+  test-report-script:
+    name: test-report script
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Run script on a small subset
+        run: dotnet scripts/test-report.cs --filter "FullyQualifiedName~IconParserTests" | tee report.txt
+
+      - name: Script reported the passing tests
+        run: grep -E "[1-9][0-9]* passed.* 0 failed" report.txt
+
+      - name: Script exits non-zero when no test matches the filter
+        run: |
+          if dotnet scripts/test-report.cs --filter "FullyQualifiedName=Nope.DoesNotExist"; then
+            echo "Expected a non-zero exit code" >&2; exit 1
+          fi
