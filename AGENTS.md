@@ -18,3 +18,8 @@ Terminal to-do app (.NET 10, Spectre.Console). Solution: `TuiDo.slnx`.
 - Data lives in `%LOCALAPPDATA%\tui-do\tasks.json` and `lists.json`.
 - Nerd Font glyphs are written as `\uXXXX` escapes; keep them in `Theme`/`Glyph` instead of repeating literals.
 - New UI modes get their own `IKeyHandler` registered (in priority order) in `TuiApp.Create` and a renderer in `Presentation/Views`.
+
+## CLI commands (`src/TuiDo/Cli`)
+- `tuido --version | --help | --install | --uninstall` are handled by `CliApp` before the TUI starts (see `Program.cs`). The assembly is named `tuido`; the version lives in `<Version>` in `TuiDo.csproj` (starts at 1.0.0).
+- `--version` compares against the latest GitHub release (`AppInfo.Repository`). `--install` copies the app folder to `%LOCALAPPDATA%\Programs\tuido` and adds it to the user PATH; `--uninstall` also deletes the data folder.
+- Publish a self-contained build for distribution: `dotnet publish src/TuiDo -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o dist`

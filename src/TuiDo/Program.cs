@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using Spectre.Console;
 using TuiDo;
+using TuiDo.Cli;
 using TuiDo.Infrastructure;
 
 // The UI is in English with fixed dd/MM/yyyy dates, so formatting must not depend on the machine culture.
@@ -10,6 +11,9 @@ CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 
 Console.OutputEncoding = Encoding.UTF8;
 Console.InputEncoding = Encoding.UTF8;
+
+if (CliApp.IsCliCommand(args))
+    return await new CliApp(AnsiConsole.Console, new GitHubReleaseChecker(), Installer.CreateDefault(AnsiConsole.Console), new ConsoleKeyReader()).RunAsync(args);
 
 var terminal = new ConsoleTerminal();
 var keys = new ConsoleKeySource();
@@ -24,3 +28,4 @@ var app = TuiApp.Create(
     new ExplorerFolderOpener());
 
 new ConsoleHost(app, keys, terminal, AnsiConsole.Console, clock).Run();
+return 0;

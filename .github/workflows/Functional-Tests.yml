@@ -1,4 +1,4 @@
-name: ci
+name: Functional-Tests
 
 on:
   pull_request:
