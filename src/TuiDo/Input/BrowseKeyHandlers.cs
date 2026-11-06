@@ -7,7 +7,7 @@ using TuiDo.Services;
 namespace TuiDo.Input;
 
 /// <summary>Default handler: moving between panels and lists and launching every action.</summary>
-internal sealed class MainKeyHandler(AppState state, BrowseModel browse, TodoService service, IClock clock, GlobalShortcuts shortcuts) : IKeyHandler
+internal sealed class MainKeyHandler(AppState state, BrowseModel browse, TodoService service, IClock clock, GlobalShortcuts shortcuts, bool canSwitchDirectory = false) : IKeyHandler
 {
     public bool IsActive => true;
 
@@ -15,6 +15,8 @@ internal sealed class MainKeyHandler(AppState state, BrowseModel browse, TodoSer
     {
         var list = browse.Visible();
         var item = browse.SelectedItem(list);
+
+        if (canSwitchDirectory && !state.FocusRight && key.KeyChar == 'd') { state.DirPick = new DirectoryBrowser(service.DataDirectory); return; }
 
         if (shortcuts.TryHandle(key)) return;
         if (key.KeyChar == 'P' && state.FocusRight && browse.Ranked && item != null) { state.PriorityInput = ""; return; }

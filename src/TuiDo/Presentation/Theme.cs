@@ -20,15 +20,29 @@ internal static class Theme
 
     public static string Star(bool on) => on ? "[orange1]\udb81\udcce[/]" : "[grey]\uf41e[/]";
 
-    public static string StatusIcon(Status status) => status switch
+    public static string StatusColor(Status status) => status switch
     {
-        Status.Done => "[green]\uf05d[/]",
-        Status.Cancelled => "[red]\uf52f[/]",
-        Status.Waiting => "[hotpink]\uf501[/]",
-        Status.Doing => "[orange1]\ueba6[/]",
-        Status.Blocked => "[grey]\udb80\udcad[/]",
-        _ => "[blue]\uf4aa[/]",
+        Status.Done => "green",
+        Status.Cancelled => "red",
+        Status.Waiting => "hotpink",
+        Status.Event => "#B027F5",
+        Status.Doing => "orange1",
+        Status.Blocked => "grey",
+        _ => "blue",
     };
+
+    public static string StatusGlyph(Status status) => status switch
+    {
+        Status.Done => "\uf05d",
+        Status.Cancelled => "\uf52f",
+        Status.Waiting => "\uf29c",
+        Status.Event => "\uf2be",
+        Status.Doing => "\uf192",
+        Status.Blocked => "\udb80\udcad",
+        _ => "\uf4aa",
+    };
+
+    public static string StatusIcon(Status status) => $"[{StatusColor(status)}]{StatusGlyph(status)}[/]";
 
     public static string ItemIcon(TodoItem item, DateTime today) =>
         item.IsOverdue(today) ? "[yellow]\uea6c[/]" : StatusIcon(item.Status);

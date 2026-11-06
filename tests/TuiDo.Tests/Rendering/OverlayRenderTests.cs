@@ -95,7 +95,32 @@ public class CalendarRenderTests
         Assert.Contains("November 2026", screen);
         foreach (var day in new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" })
             Assert.Contains(day, screen);
-        Assert.Contains("←→↑↓: day | PgUp/PgDn: month | t: today | Esc: close", screen);
+        Assert.Contains("←→↑↓: day | PgUp/PgDn: month | t: today | Enter: day tasks | Esc: close", screen);
+    }
+
+    [Fact]
+    public void Enter_opens_a_day_panel_with_the_tasks_ordered_by_time_and_All_Day_first()
+    {
+        var app = TestApp.With(a =>
+        {
+            a.AddTask("evening", code: 1, time: new TimeSpan(18, 30, 0));
+            a.AddTask("morning", code: 2, time: new TimeSpan(8, 0, 0));
+            a.AddTask("whole day", code: 3);
+        });
+
+        var screen = app.FocusTasks().Press('c').Enter().Screen();
+
+        Assert.Contains("03/11/2026", screen);
+        Assert.Contains("All Day", screen);
+        Assert.Contains("08:00", screen);
+        Assert.Contains("18:30", screen);
+        Assert.True(screen.IndexOf("All Day", StringComparison.Ordinal) < screen.IndexOf("08:00", StringComparison.Ordinal));
+        Assert.True(screen.IndexOf("08:00", StringComparison.Ordinal) < screen.IndexOf("18:30", StringComparison.Ordinal));
+
+        app.Esc();
+        Assert.Contains("Calendar", app.Screen());
+        app.Esc();
+        Assert.DoesNotContain("Calendar", app.Screen());
     }
 
     [Fact]

@@ -80,6 +80,8 @@ internal sealed class CalendarKeyHandler(AppState state, IClock clock) : IKeyHan
     public void Handle(ConsoleKeyInfo key)
     {
         var day = state.Calendar!.Value;
+        if (key.Key == ConsoleKey.Enter) { state.CalendarDay = true; return; }
+        if (key.Key is ConsoleKey.Escape or ConsoleKey.C && state.CalendarDay) { state.CalendarDay = false; return; }
         state.Calendar = key.Key switch
         {
             ConsoleKey.LeftArrow or ConsoleKey.H => day.AddDays(-1),
@@ -92,6 +94,39 @@ internal sealed class CalendarKeyHandler(AppState state, IClock clock) : IKeyHan
             ConsoleKey.Escape or ConsoleKey.C => null,
             _ => day,
         };
+    }
+}
+
+internal sealed class DirectoryPickerKeyHandler(AppState state, TodoService service, Func<string, ITodoRepository> factory, NotificationLog log) : IKeyHandler
+{
+    public bool IsActive => state.DirPick != null;
+
+    public void Handle(ConsoleKeyInfo key)
+    {
+        var browser = state.DirPick!;
+        switch (key.Key)
+        {
+            case ConsoleKey.Escape: state.DirPick = null; break;
+            case ConsoleKey.UpArrow: browser.Move(-1); break;
+            case ConsoleKey.DownArrow: browser.Move(1); break;
+            case ConsoleKey.PageUp: browser.Move(-DirectoryBrowser.Visible); break;
+            case ConsoleKey.PageDown: browser.Move(DirectoryBrowser.Visible); break;
+            case ConsoleKey.RightArrow: browser.Enter(); break;
+            case ConsoleKey.LeftArrow or ConsoleKey.Backspace: browser.Up(); break;
+            case ConsoleKey.Enter when browser.Selected is { } selected: Open(selected); break;
+        }
+    }
+
+    private void Open(string path)
+    {
+        service.Switch(factory(path));
+        state.DirPick = null;
+        state.Menu = 0;
+        state.Selected = 0;
+        state.Query = null;
+        state.FocusRight = false;
+        state.Detail = false;
+        log.Success($"Opened {Path.GetFileName(path.TrimEnd(Path.DirectorySeparatorChar))}");
     }
 }
 

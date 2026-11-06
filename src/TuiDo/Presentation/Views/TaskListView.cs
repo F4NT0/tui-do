@@ -7,7 +7,7 @@ namespace TuiDo.Presentation.Views;
 
 internal static class TaskListView
 {
-    public static IRenderable Render(AppState state, IReadOnlyList<TodoItem> list, bool ranked, DateTime today)
+    public static IRenderable Render(AppState state, IReadOnlyList<TodoItem> list, bool ranked, DateTime today, IReadOnlyList<CustomList> lists)
     {
         if (list.Count == 0) return new Markup("[grey]No tasks. Press [bold]n[/] to create one.[/]");
 
@@ -24,10 +24,13 @@ internal static class TaskListView
             var rank = ranked ? $"[grey]{i + 1,2}[/] " : "";
             var marker = selected && state.Reorder ? "[orange1]↕[/]" : selected ? "[orange1]>[/]" : " ";
             var blocked = item.Status == Status.Blocked && item.BlockedBy != null ? $"  [grey]blocked by #{item.BlockedBy}[/]" : "";
+            var origin = state.Menu < Services.BuiltInLists.Count && lists.FirstOrDefault(l => l.Id == item.ListId) is { } from
+                ? $"  [{Theme.Cyan}]{Markup.Escape(from.Icon)}[/] [grey]{Markup.Escape(from.Name)}[/]" : "";
+            var time = item.Time is null ? "" : $"  {item.TimeText}";
             var notes = string.IsNullOrWhiteSpace(item.Notes) ? "" : "  \uf249 notes";
 
             rows.Add(new Markup($"{marker} {rank}{Theme.ItemIcon(item, today)}  [grey]#{item.Code}[/] {title}  {Theme.Star(item.Important)}"));
-            rows.Add(new Markup($"     {(ranked ? "   " : "")}[grey]{item.Date:dd/MM/yyyy}{notes}[/]{blocked}"));
+            rows.Add(new Markup($"     {(ranked ? "   " : "")}[grey]{item.Date:dd/MM/yyyy}{time}{notes}[/]{origin}{blocked}"));
         }
 
         return new Rows(rows);

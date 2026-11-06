@@ -1,13 +1,16 @@
 using Spectre.Console;
+using TuiDo.Abstractions;
+using TuiDo.Infrastructure;
 using TuiDo.Presentation;
 using TuiDo.Presentation.Views;
 
 namespace TuiDo.Cli;
 
-internal sealed class CliApp(IAnsiConsole console, IReleaseChecker releases, Installer installer, IKeyReader keys)
+internal sealed class CliApp(IAnsiConsole console, IReleaseChecker releases, Installer installer, IKeyReader keys,
+    ITodoRepository? repository = null, IClock? clock = null)
 {
     public static bool IsCliCommand(string[] args) =>
-        args.Length > 0 && args[0].ToLowerInvariant() is "--version" or "-v" or "--help" or "-h" or "--install" or "--uninstall";
+        args.Length > 0 && args[0].ToLowerInvariant() is "--version" or "-v" or "--help" or "-h" or "--install" or "--uninstall" or "--today";
 
     public async Task<int> RunAsync(string[] args)
     {
@@ -15,6 +18,8 @@ internal sealed class CliApp(IAnsiConsole console, IReleaseChecker releases, Ins
         {
             case "--version" or "-v": return await VersionAsync();
             case "--help" or "-h": Help(); return 0;
+            case "--today":
+                return TodayCommand.Run(console, repository ?? new JsonTodoRepository(JsonTodoRepository.DefaultDirectory), clock ?? new SystemClock());
             case "--install": return installer.Install();
             case "--uninstall": return installer.Uninstall();
             default: return 1;

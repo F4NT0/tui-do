@@ -67,7 +67,7 @@ public class TodoServiceTests
     }
 
     [Fact]
-    public void My_Day_has_open_tasks_due_today_or_earlier_that_are_not_in_a_custom_list()
+    public void My_Day_has_open_tasks_due_today_or_earlier_from_any_list()
     {
         var work = new CustomList { Name = "Work" };
         _repo.Lists.Add(work);
@@ -79,7 +79,7 @@ public class TodoServiceTests
 
         var titles = Service().Filter(BuiltInLists.MyDay).Select(i => i.Title);
 
-        Assert.Equal(["today", "overdue"], titles);
+        Assert.Equal(["today", "overdue", "in list"], titles);
     }
 
     [Fact]

@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/TuiDo/TuiDo.csproj" />
+    <Project Path="src/tuido.Installer/tuido.Installer.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/TuiDo.Tests/TuiDo.Tests.csproj" />

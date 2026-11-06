@@ -37,11 +37,11 @@ public class CliTests
     public void No_arguments_start_the_app() => Assert.False(CliApp.IsCliCommand([]));
 
     [Fact]
-    public async Task Version_starts_at_1_0_0()
+    public async Task Version_reports_the_current_version()
     {
         var (code, output) = await Run("--version");
         Assert.Equal(0, code);
-        Assert.Contains("tuido v1.0.0", output);
+        Assert.Contains("tuido v1.0.1", output);
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class CliTests
     [Fact]
     public async Task Version_reports_up_to_date_when_the_release_matches()
     {
-        var (_, output) = await Run("--version", new FakeReleases(new("v1.0.0", "https://example/r")));
+        var (_, output) = await Run("--version", new FakeReleases(new("v1.0.1", "https://example/r")));
         Assert.Contains("latest release", output);
     }
 
@@ -95,7 +95,7 @@ public class CliTests
 
         Assert.Contains("████████╗██╗", console.Output);
         Assert.Contains("Terminal-native to-do manager", console.Output);
-        Assert.Contains("V1.0.0", console.Output);
+        Assert.Contains("V1.0.1", console.Output);
         Assert.Contains("Start tuido", console.Output);
     }
 

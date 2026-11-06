@@ -19,8 +19,9 @@ internal static class TestEnvironment
 internal static class Glyph
 {
     public const string NotStarted = "\uf4aa";
-    public const string Doing = "\ueba6";
-    public const string NeedMoreDetails = "\uf501";
+    public const string Doing = "\uf192";
+    public const string NeedMoreDetails = "\uf29c";
+    public const string Event = "\uf2be";
     public const string Blocked = "\udb80\udcad";
     public const string Completed = "\uf05d";
     public const string Cancelled = "\uf52f";

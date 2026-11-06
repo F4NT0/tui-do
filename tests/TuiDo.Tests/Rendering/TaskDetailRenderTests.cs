@@ -21,7 +21,7 @@ public class TaskDetailRenderTests
         var screen = Open("hello").Screen();
 
         Assert.Contains("#7 Write docs", screen);
-        Assert.Contains("#7  ·  03/11/2026  ·  Not started", screen);
+        Assert.Contains("#7  ·  03/11/2026 All Day  ·  Not started", screen);
         Assert.Contains("hello", screen);
         Assert.Contains("↑↓: scroll | e: edit | Esc: back | ?: help", screen);
         Assert.DoesNotContain("No tasks", screen);

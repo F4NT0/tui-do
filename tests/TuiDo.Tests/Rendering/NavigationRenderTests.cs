@@ -10,7 +10,7 @@ public class NavigationRenderTests
         a.AddTask("alpha", priority: 1);
         a.AddTask("beta", priority: 2);
         var work = a.AddList("Work");
-        a.AddTask("job", listId: work.Id);
+        a.AddTask("job", date: DateTime.Today.AddDays(30), listId: work.Id);
     });
 
     [Fact]
@@ -170,7 +170,7 @@ public class NavigationRenderTests
     [Fact]
     public void Status_values_round_trip_through_the_domain()
     {
-        Assert.Equal(6, StatusCatalog.Ordered.Count);
+        Assert.Equal(7, StatusCatalog.Ordered.Count);
         Assert.Equal("Need more details", StatusCatalog.Name(Status.Waiting));
     }
 }

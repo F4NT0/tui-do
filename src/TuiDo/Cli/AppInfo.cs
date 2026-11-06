@@ -9,7 +9,7 @@ internal static class AppInfo
     public const string ReleasesUrl = "https://github.com/" + Repository + "/releases";
 
     public static string Version { get; } =
-        (typeof(AppInfo).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "1.0.0")
+        (typeof(AppInfo).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "1.0.1")
         .Split('+')[0];
 
     public static string ExeName => OperatingSystem.IsWindows() ? Command + ".exe" : Command;

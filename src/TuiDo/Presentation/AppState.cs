@@ -29,7 +29,9 @@ internal sealed class AppState
     public int? HelpTab { get; set; }
     public string? PriorityInput { get; set; }
     public DateTime? Calendar { get; set; }
+    public bool CalendarDay { get; set; }
     public bool ShowPath { get; set; }
+    public DirectoryBrowser? DirPick { get; set; }
 
     // context shared by the pickers
     public TodoItem? Target { get; set; }
@@ -37,7 +39,7 @@ internal sealed class AppState
 
     public bool ModalOpen =>
         TaskForm != null || ListForm != null || StatusPick != null || BlockPick != null || MovePick != null ||
-        EditorPick != null || HelpTab != null || PriorityInput != null || Calendar != null || ShowPath;
+        EditorPick != null || HelpTab != null || PriorityInput != null || Calendar != null || ShowPath || DirPick != null;
 
     public bool IsTextEntry => TaskForm != null;
 }

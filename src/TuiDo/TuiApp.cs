@@ -37,7 +37,8 @@ internal sealed class TuiApp
 
     public IRenderable Render(IAnsiConsole console, int width, int height) => _view.Render(console, width, height);
 
-    public static TuiApp Create(ITodoRepository repository, IClock clock, IClipboard clipboard, IKeySource keys, IEditorLauncher editors, IFolderOpener folders)
+    public static TuiApp Create(ITodoRepository repository, IClock clock, IClipboard clipboard, IKeySource keys, IEditorLauncher editors, IFolderOpener folders,
+        Func<string, ITodoRepository>? repositoryFactory = null)
     {
         var log = new NotificationLog(clock);
         var service = new TodoService(repository, clock, log);
@@ -50,6 +51,7 @@ internal sealed class TuiApp
         [
             new EditorPickerKeyHandler(state, editors, log),
             new CalendarKeyHandler(state, clock),
+            .. repositoryFactory is null ? Array.Empty<IKeyHandler>() : [new DirectoryPickerKeyHandler(state, service, repositoryFactory, log)],
             new DataLocationKeyHandler(state, service, folders, log),
             new TaskFormKeyHandler(state, service, clipboard, keys, log),
             new ListFormKeyHandler(state, service, clipboard, log),
@@ -61,9 +63,9 @@ internal sealed class TuiApp
             new SearchKeyHandler(state),
             new DetailKeyHandler(state, browse, service, shortcuts),
             new ReorderKeyHandler(state, browse, service, shortcuts),
-            new MainKeyHandler(state, browse, service, clock, shortcuts),
+            new MainKeyHandler(state, browse, service, clock, shortcuts, repositoryFactory != null),
         ];
 
-        return new TuiApp(state, service, log, handlers, new AppView(state, browse, service, editors, clock, log));
+        return new TuiApp(state, service, log, handlers, new AppView(state, browse, service, editors, clock, log, repositoryFactory != null));
     }
 }

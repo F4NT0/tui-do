@@ -65,7 +65,7 @@ internal static class Modals
         return Frame("Help", new Rows(body), 78);
     }
 
-    public static IRenderable Calendar(TodoService service, DateTime selected, DateTime today)
+    public static IRenderable Calendar(TodoService service, DateTime selected, DateTime today, bool dayOpen = false)
     {
         var first = new DateTime(selected.Year, selected.Month, 1);
         var days = DateTime.DaysInMonth(selected.Year, selected.Month);
@@ -97,19 +97,54 @@ internal static class Modals
             : new Rows(dayTasks.Take(5).Select(t => new Markup(
                 $"{Theme.ItemIcon(t, today)}  [grey]#{t.Code}[/] {Markup.Escape(t.Title)}  [grey]{StatusCatalog.Name(t.Status)}[/]")));
 
-        return Frame("\uf073 Calendar", new Rows(
+        var calendar = Frame("\uf073 Calendar", new Rows(
             new Markup($"[bold]{selected:MMMM yyyy}[/]  [grey]·  {selected:dd/MM/yyyy}[/]"),
             table,
             new Markup($"[bold {Theme.Orange}]Tasks on {selected:dd/MM}[/]"),
             agenda,
-            new Markup("[grey]←→↑↓: day  ·  PgUp/PgDn: month  ·  t: today  ·  Esc/c: close[/]")), width: null);
+            new Markup("[grey]←→↑↓: day  ·  PgUp/PgDn: month  ·  t: today  ·  Enter: day tasks  ·  Esc/c: close[/]")), width: null);
+        return dayOpen ? new Grid().AddColumn().AddColumn().AddRow(calendar, DayTasks(selected, dayTasks, today)) : calendar;
+    }
+
+    private static IRenderable DayTasks(DateTime day, IReadOnlyList<TodoItem> tasks, DateTime today)
+    {
+        IRenderable body = tasks.Count == 0
+            ? new Markup("[grey]No tasks this day.[/]")
+            : new Rows(tasks.Select(t =>
+            {
+                var time = t.Time is null ? $"[green]{TodoItem.AllDay,-7}[/]" : $"[bold]{t.TimeText,-7}[/]";
+                return new Markup($"{time} {Theme.ItemIcon(t, today)}  [grey]#{t.Code}[/] {Markup.Escape(t.Title)}");
+            }));
+        return Frame($" {day:dd/MM/yyyy}", new Rows(body, new Text(""), new Markup("[grey]Esc: close[/]")), 44);
     }
 
     public static IRenderable TaskEditor(TaskForm form) =>
         Frame(form.Editing ? $"\uf040 Edit task #{form.Existing!.Code}" : "\uf067 New task", new Rows(FormParts(form)), 64);
 
+    public static IRenderable IconPicker(int selected)
+    {
+        var grid = new Grid();
+        for (var c = 0; c < ListForm.IconColumns; c++) grid.AddColumn(new GridColumn().NoWrap().Padding(1, 0));
+        for (var r = 0; r < ListForm.Icons.Length; r += ListForm.IconColumns)
+            grid.AddRow(ListForm.Icons.Skip(r).Take(ListForm.IconColumns).Select((icon, c) => (IRenderable)new Markup(
+                r + c == selected ? $"[black on {Theme.Accent}] {Markup.Escape(icon)} [/]" : $"[{Theme.Cyan}] {Markup.Escape(icon)} [/]")).ToArray());
+        return Frame("Choose icon", new Rows(grid, new Text(""), new Markup("[grey]←→↑↓: move  ·  Enter: choose  ·  Esc: back[/]")), null);
+    }
+
+    public static IRenderable DirectoryPicker(DirectoryBrowser browser)
+    {
+        var rows = new List<IRenderable> { new Markup($"[orange1]{Markup.Escape(browser.Current ?? "This PC")}[/]"), new Text("") };
+        if (browser.Entries.Count == 0) rows.Add(new Markup($"[{Theme.Muted}](no sub-directories)[/]"));
+        for (var i = browser.First; i < Math.Min(browser.Entries.Count, browser.First + DirectoryBrowser.Visible); i++)
+            rows.Add(new Markup(i == browser.Cursor
+                ? $"[bold {Theme.Accent}]> \uf07b {Markup.Escape(browser.Entries[i].Name)}[/]"
+                : $"  [grey]\uf07b {Markup.Escape(browser.Entries[i].Name)}[/]"));
+        return Frame("\uf07b Open directory", new Rows(rows), 64);
+    }
+
     public static IRenderable NewList(ListForm form)
     {
+        if (form.IconPick is { } pick) return IconPicker(pick);
         var parts = new List<IRenderable>
         {
             Field("Name", form.Name, form.Field == ListForm.NameField),
@@ -125,7 +160,9 @@ internal static class Modals
         var parts = new List<IRenderable>
         {
             Field("Title", form.Title, form.Field == TaskForm.TitleField),
-            Field("Date (dd/MM/yyyy)", form.Date, form.Field == TaskForm.DateField),
+            new Grid { Expand = true }.AddColumn().AddColumn().AddRow(
+                Field("Date (dd/MM/yyyy)", form.Date, form.Field == TaskForm.DateField),
+                Field("Time (Ctrl+A: All Day)", form.Time, form.Field == TaskForm.TimeField)),
             Field("About (Markdown)", form.Notes, form.Field == TaskForm.NotesField, multiline: true),
         };
         if (form.Error != "") parts.Add(new Markup($"[red]{Markup.Escape(form.Error)}[/]"));

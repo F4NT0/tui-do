@@ -6,7 +6,7 @@ using TuiDo.Services;
 namespace TuiDo.Presentation.Views;
 
 /// <summary>Turns the state + data into one full-screen renderable. Never mutates anything but the scroll view cache.</summary>
-internal sealed class AppView(AppState state, BrowseModel browse, TodoService service, IEditorLauncher editors, IClock clock, NotificationLog log)
+internal sealed class AppView(AppState state, BrowseModel browse, TodoService service, IEditorLauncher editors, IClock clock, NotificationLog log, bool showDirectory = false)
 {
     /// <param name="width">Terminal width in cells.</param>
     /// <param name="height">Rows available for the whole layout (footer included).</param>
@@ -16,7 +16,7 @@ internal sealed class AppView(AppState state, BrowseModel browse, TodoService se
         var today = clock.Today;
 
         var title = state.Query != null ? $"Search: {state.Query}" : service.MenuName(state.Menu);
-        IRenderable content = TaskListView.Render(state, list, browse.Ranked, today);
+        IRenderable content = TaskListView.Render(state, list, browse.Ranked, today, service.Lists);
         if (state.Detail && list.Count > 0)
         {
             var item = list[state.Selected];
@@ -41,7 +41,7 @@ internal sealed class AppView(AppState state, BrowseModel browse, TodoService se
             new Layout("custom", SidebarView.Custom(state, service, modalOpen))).Size(SidebarView.Width);
 
         return new Layout("root").SplitRows(
-            new Layout("topbar", TopBarView.Render(clock, log, width)).Size(TopBarView.Height),
+            new Layout("topbar", TopBarView.Render(clock, log, width, showDirectory ? Path.GetFileName(service.DataDirectory.TrimEnd(Path.DirectorySeparatorChar)) : null)).Size(TopBarView.Height),
             new Layout("body").SplitColumns(left, new Layout("right", rightPanel)),
             new Layout("footer", new Markup($"[grey]{Markup.Escape(FooterView.Text(state))}[/]")).Size(1));
     }
@@ -49,7 +49,8 @@ internal sealed class AppView(AppState state, BrowseModel browse, TodoService se
     private IRenderable? CurrentModal(int visibleCount, DateTime today)
     {
         if (state.EditorPick is { } editor) return Modals.Editors(editors.Editors, editor);
-        if (state.Calendar is { } day) return Modals.Calendar(service, day, today);
+        if (state.Calendar is { } day) return Modals.Calendar(service, day, today, state.CalendarDay);
+        if (state.DirPick is { } dir) return Modals.DirectoryPicker(dir);
         if (state.ShowPath) return Modals.DataLocation(service.ItemsPath, service.ListsPath);
         if (state.HelpTab is { } tab) return Modals.Help(tab);
         if (state.TaskForm is { } taskForm) return Modals.TaskEditor(taskForm);

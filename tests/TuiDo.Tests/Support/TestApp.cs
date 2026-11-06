@@ -11,7 +11,7 @@ internal sealed class TestApp
 
     public TestApp()
     {
-        App = TuiApp.Create(Repository, Clock, Clipboard, Keys, Editors, Folders);
+        App = TuiApp.Create(Repository, Clock, Clipboard, Keys, Editors, Folders, RepositoryFactory);
     }
 
     public FakeClock Clock { get; } = new();
@@ -26,6 +26,8 @@ internal sealed class TestApp
 
     public FakeFolderOpener Folders { get; } = new();
 
+    public Func<string, TuiDo.Abstractions.ITodoRepository>? RepositoryFactory { get; set; }
+
     public TuiApp App { get; private set; }
 
     /// <summary>Builds the app after the repository has been seeded (the service loads data in its constructor).</summary>
@@ -37,17 +39,18 @@ internal sealed class TestApp
         return app;
     }
 
-    public void Restart() => App = TuiApp.Create(Repository, Clock, Clipboard, Keys, Editors, Folders);
+    public void Restart() => App = TuiApp.Create(Repository, Clock, Clipboard, Keys, Editors, Folders, RepositoryFactory);
 
     public DateTime Today => Clock.Now.Date;
 
     public TodoItem AddTask(string title, DateTime? date = null, Status status = Status.Pending, Guid? listId = null,
-        bool important = false, string notes = "", int? code = null, int priority = 0)
+        bool important = false, string notes = "", int? code = null, int priority = 0, TimeSpan? time = null)
     {
         var item = new TodoItem
         {
             Title = title,
             Date = date ?? Today,
+            Time = time,
             Status = status,
             ListId = listId,
             Important = important,

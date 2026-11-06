@@ -6,7 +6,7 @@ namespace TuiDo.Services;
 /// <summary>Owns the tasks and custom lists, applies every business rule and persists the result.</summary>
 internal sealed class TodoService
 {
-    private readonly ITodoRepository _repository;
+    private ITodoRepository _repository;
     private readonly IClock _clock;
     private readonly NotificationLog _log;
     private readonly List<TodoItem> _items;
@@ -17,8 +17,26 @@ internal sealed class TodoService
         _repository = repository;
         _clock = clock;
         _log = log;
-        _items = repository.LoadItems();
-        _lists = repository.LoadLists();
+        _items = [];
+        _lists = [];
+        Load();
+    }
+
+    /// <summary>Replaces the current data with the contents of another repository (another directory).</summary>
+    public void Switch(ITodoRepository repository)
+    {
+        _repository = repository;
+        Load();
+    }
+
+    public string DataDirectory => Path.GetDirectoryName(ItemsPath) ?? ItemsPath;
+
+    private void Load()
+    {
+        _items.Clear();
+        _items.AddRange(_repository.LoadItems());
+        _lists.Clear();
+        _lists.AddRange(_repository.LoadLists());
         var next = NextCode();
         foreach (var item in _items.Where(i => i.Code == 0)) item.Code = next++;
     }
@@ -51,7 +69,7 @@ internal sealed class TodoService
         var today = _clock.Today;
         return menu switch
         {
-            BuiltInLists.MyDay => _items.Where(i => i.ListId == null && i.IsOpen() && i.Date.Date <= today),
+            BuiltInLists.MyDay => _items.Where(i => i.IsOpen() && i.Date.Date <= today),
             BuiltInLists.Tasks => _items.Where(i => i.ListId == null && i.IsOpen() && i.Date.Date > today),
             BuiltInLists.Important => _items.Where(i => i.IsOpen() && i.Important),
             BuiltInLists.Completed => _items.Where(i => i.Status == Status.Done),
@@ -64,8 +82,8 @@ internal sealed class TodoService
     {
         var source = query != null ? Search(query) : Filter(menu);
         return IsRanked(menu, query)
-            ? source.OrderBy(i => i.Priority == 0 ? int.MaxValue : i.Priority).ThenBy(i => i.Date).ThenBy(i => i.Code).ToList()
-            : source.OrderBy(i => i.Date).ThenBy(i => i.Code).ToList();
+            ? source.OrderBy(i => i.Priority == 0 ? int.MaxValue : i.Priority).ThenBy(i => i.Date).ThenBy(i => i.Time ?? TimeSpan.Zero).ThenBy(i => i.Code).ToList()
+            : source.OrderBy(i => i.Date).ThenBy(i => i.Time ?? TimeSpan.Zero).ThenBy(i => i.Code).ToList();
     }
 
     public IEnumerable<TodoItem> Search(string query)
@@ -75,16 +93,17 @@ internal sealed class TodoService
         return _items.Where(i => code.Length == 0 || i.Code.ToString() == code || i.Title.Contains(text, StringComparison.OrdinalIgnoreCase));
     }
 
-    public IEnumerable<TodoItem> OnDate(DateTime date) => _items.Where(i => i.Date.Date == date.Date).OrderBy(i => i.Code);
+    public IEnumerable<TodoItem> OnDate(DateTime date) => _items.Where(i => i.Date.Date == date.Date).OrderBy(i => i.Time ?? TimeSpan.Zero).ThenBy(i => i.Code);
 
     // ---- tasks ----
 
-    public TodoItem CreateTask(string title, DateTime date, string notes, Guid? listId)
+    public TodoItem CreateTask(string title, DateTime date, string notes, Guid? listId, TimeSpan? time = null)
     {
         var item = new TodoItem
         {
             Title = title.Trim(),
             Date = date,
+            Time = time,
             Notes = notes,
             ListId = listId,
             Code = NextCode(),
@@ -95,10 +114,11 @@ internal sealed class TodoService
         return item;
     }
 
-    public void UpdateTask(TodoItem item, string title, DateTime date, string notes)
+    public void UpdateTask(TodoItem item, string title, DateTime date, string notes, TimeSpan? time = null)
     {
         item.Title = title.Trim();
         item.Date = date;
+        item.Time = time;
         item.Notes = notes;
         SaveItems($"Task #{item.Code} updated");
     }

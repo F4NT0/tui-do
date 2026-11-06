@@ -59,7 +59,16 @@ jobs:
           count=$(echo "$matrix" | jq '.include | length')
           echo "Discovered $count test methods"
           if [ "$count" -eq 0 ]; then echo "No tests found" >&2; exit 1; fi
-          if [ "$count" -gt 256 ]; then echo "A matrix is limited to 256 jobs; split it by class instead" >&2; exit 1; fi
+          if [ "$count" -gt 256 ]; then
+            echo "More than 256 test methods: a matrix is limited to 256 jobs, so group the jobs by test class instead"
+            matrix=$(jq -R -s -c '
+              split("\n") | map(select(length > 0))
+              | map(split("(")[0] | split(".") | .[:-1] | join("."))
+              | unique
+              | map({name: (split(".") | .[-1]), filter: ("FullyQualifiedName~" + . + ".")})
+              | {include: .}' all-tests.txt)
+            count=$(echo "$matrix" | jq '.include | length')
+          fi
 
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
           echo "count=$count" >> "$GITHUB_OUTPUT"

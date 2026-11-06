@@ -43,7 +43,7 @@ public class NotificationRenderTests
     {
         var app = new TestApp();
         app.Editors.Installed.Clear();
-        app.Press('n').Type("t").Tab().Tab().Ctrl('e').Enter();
+        app.Press('n').Type("t").Tab().Tab().Tab().Ctrl('e').Enter();
 
         Assert.Contains($"{Glyph.Overdue} Neovim is not installed on this computer", TopBar(app.Screen()));
     }

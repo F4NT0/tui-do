@@ -26,7 +26,7 @@ internal static class TaskDetailView
 
         return new Rows(
             new Markup($"{Theme.ItemIcon(item, today)}  [bold]{Markup.Escape(item.Title)}[/]  {Theme.Star(item.Important)}"),
-            new Markup($"[grey]#{item.Code}  ·  {item.Date:dd/MM/yyyy}  ·  {statusName}{waiting}{percent}[/]"),
+            new Markup($"[grey]#{item.Code}  ·  {item.Date:dd/MM/yyyy} {item.TimeText}  ·  {statusName}{waiting}{percent}[/]"),
             new Text(""),
             view);
     }

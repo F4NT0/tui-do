@@ -26,6 +26,7 @@ internal static class HelpScreen
     [
         ("tuido", "Open the app"),
         ("tuido --version", "Show the version and check for a new release"),
+        ("tuido --today", "Show today's tasks in a table"),
         ("tuido --help", "Show this help"),
         ("tuido --install", "Install tuido and add it to your PATH"),
         ("tuido --uninstall", "Remove tuido, its PATH entry and all its data"),

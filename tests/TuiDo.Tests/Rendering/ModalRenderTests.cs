@@ -15,9 +15,9 @@ public class StatusPickerRenderTests
         var screen = app.Screen();
 
         Assert.Contains("Status", screen);
-        foreach (var name in new[] { "Not started", "Doing", "Need more details", "Blocked", "Completed", "Cancelled" })
+        foreach (var name in new[] { "Not started", "Doing", "Need more details", "Blocked", "Completed", "Cancelled", "Event" })
             Assert.Contains(name, screen);
-        foreach (var glyph in new[] { Glyph.NotStarted, Glyph.Doing, Glyph.NeedMoreDetails, Glyph.Blocked, Glyph.Completed, Glyph.Cancelled })
+        foreach (var glyph in new[] { Glyph.NotStarted, Glyph.Doing, Glyph.NeedMoreDetails, Glyph.Blocked, Glyph.Completed, Glyph.Cancelled, Glyph.Event })
             Assert.Contains(glyph, screen);
         Assert.Contains("↑↓: select | Enter: confirm | Esc: cancel", screen);
     }
@@ -192,7 +192,7 @@ public class MoveToListRenderTests
         app.FocusTasks().Press('m').Down().Enter();
 
         var screen = app.Screen();
-        Assert.Contains("My Day (0)", screen);
+        Assert.Contains("My Day (1)", screen);
         Assert.Contains("Work (1)", screen);
         Assert.Contains("#1 moved", screen);
     }
@@ -419,7 +419,7 @@ public class NewListRenderTests
 
 public class EditorChooserRenderTests
 {
-    private static TestApp AboutFocused(TestApp app) => app.Press('n').Type("t").Tab().Tab().Type("draft").Ctrl('e');
+    private static TestApp AboutFocused(TestApp app) => app.Press('n').Type("t").Tab().Tab().Tab().Type("draft").Ctrl('e');
 
     [Fact]
     public void Lists_neovim_vim_and_vscode_with_their_icons_first()

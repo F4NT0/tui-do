@@ -13,6 +13,13 @@ internal sealed class TodoItem
     public Guid? ListId { get; set; }
     public int Priority { get; set; }
 
+    /// <summary>Time of day; null means "All Day".</summary>
+    public TimeSpan? Time { get; set; }
+
+    public static string AllDay => "All Day";
+
+    public string TimeText => Time is { } t ? t.ToString(@"hh\:mm") : AllDay;
+
     public bool IsOpen() => StatusCatalog.IsOpen(Status);
 
     public bool IsOverdue(DateTime today) => Status == Status.Pending && Date.Date < today.Date;

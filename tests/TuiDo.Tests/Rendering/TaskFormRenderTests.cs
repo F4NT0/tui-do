@@ -40,7 +40,7 @@ public class TaskFormRenderTests
         app.Type("2027");
         Assert.Contains("03/11/2027", app.Screen());
 
-        app.Tab().Type("some notes");
+        app.Tab().Tab().Type("some notes");
         Assert.Contains("some notes", app.Screen());
     }
 
@@ -129,7 +129,7 @@ public class TaskFormRenderTests
 
         Assert.Contains("report", screen);
         Assert.Contains("Work (1)", screen);
-        Assert.Contains("My Day (0)", screen);
+        Assert.Contains("My Day (1)", screen);
     }
 
     [Fact]
@@ -137,7 +137,7 @@ public class TaskFormRenderTests
     {
         var app = new TestApp();
         app.Clipboard.Text = "# Heading\nsecond line";
-        app.Press('n').Tab().Tab().Ctrl('v');
+        app.Press('n').Tab().Tab().Tab().Ctrl('v');
 
         var screen = app.Screen();
 
@@ -158,7 +158,7 @@ public class TaskFormRenderTests
     [Fact]
     public void Shift_Enter_adds_a_new_line_in_about_instead_of_saving()
     {
-        var app = new TestApp().Press('n').Type("t").Tab().Tab().Type("line1").Press(ConsoleKey.Enter, ConsoleModifiers.Shift).Type("line2");
+        var app = new TestApp().Press('n').Type("t").Tab().Tab().Tab().Type("line1").Press(ConsoleKey.Enter, ConsoleModifiers.Shift).Type("line2");
 
         var screen = app.Screen();
 
@@ -171,7 +171,7 @@ public class TaskFormRenderTests
     [Fact]
     public void Enter_that_arrives_while_more_keys_are_queued_is_pasted_text_not_a_save()
     {
-        var app = new TestApp().Press('n').Type("t").Tab().Tab().Type("pasted");
+        var app = new TestApp().Press('n').Type("t").Tab().Tab().Tab().Type("pasted");
         app.Keys.Push(new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false));
 
         app.Enter().Type("more");
@@ -189,7 +189,7 @@ public class TaskFormRenderTests
         var app = new TestApp().Press('n').Ctrl('e');
         Assert.DoesNotContain("Edit About in", app.Screen());
 
-        app.Tab().Tab().Ctrl('e');
+        app.Tab().Tab().Tab().Ctrl('e');
 
         Assert.Contains("Edit About in", app.Screen());
     }
@@ -199,5 +199,43 @@ public class TaskFormRenderTests
         var count = 0;
         for (var i = text.IndexOf(value, StringComparison.Ordinal); i >= 0; i = text.IndexOf(value, i + value.Length, StringComparison.Ordinal)) count++;
         return count;
+    }
+
+    [Fact]
+    public void Time_field_defaults_to_All_Day_and_typed_time_is_saved()
+    {
+        var app = new TestApp().Press('n');
+        Assert.Contains("All Day", app.Screen());
+
+        app.Type("t").Tab().Tab().Type("0930").Enter();
+
+        Assert.Equal(new TimeSpan(9, 30, 0), app.Repository.Items[0].Time);
+        Assert.Contains("09:30", app.Screen());
+    }
+
+    [Fact]
+    public void Ctrl_A_switches_the_time_back_to_All_Day()
+    {
+        var app = new TestApp().Press('n').Type("t").Tab().Tab().Type("1015").Ctrl('a').Enter();
+
+        Assert.Null(app.Repository.Items[0].Time);
+    }
+
+    [Fact]
+    public void Invalid_time_is_rejected()
+    {
+        var app = new TestApp().Press('n').Type("t").Tab().Tab().Type("2575").Enter();
+
+        Assert.Contains("Invalid time", app.Screen());
+        Assert.Empty(app.Repository.Items);
+    }
+
+    [Fact]
+    public void My_Day_shows_the_name_of_the_list_a_task_came_from()
+    {
+        var app = TestApp.With(a => a.AddTask("report", listId: a.AddList("Work").Id));
+
+        Assert.Matches(@"\d{2}/\d{2}/\d{4}.*Work", app.Screen());
+        Assert.Contains("My Day (1)", app.Screen());
     }
 }

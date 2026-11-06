@@ -15,10 +15,16 @@ Console.InputEncoding = Encoding.UTF8;
 if (CliApp.IsCliCommand(args))
     return await new CliApp(AnsiConsole.Console, new GitHubReleaseChecker(), Installer.CreateDefault(AnsiConsole.Console), new ConsoleKeyReader()).RunAsync(args);
 
-if (!Console.IsInputRedirected && !SplashScreen.Show(AnsiConsole.Console, new ConsoleKeyReader()))
+var start = new StartChoice(null, false);
+if (!Console.IsInputRedirected)
 {
-    try { AnsiConsole.Clear(); } catch { }
-    return 0;
+    var choice = StartMenu.Show(AnsiConsole.Console, new ConsoleKeyReader());
+    if (choice is null)
+    {
+        try { AnsiConsole.Clear(); } catch { }
+        return 0;
+    }
+    start = choice;
 }
 
 var terminal = new ConsoleTerminal();
@@ -26,12 +32,13 @@ var keys = new ConsoleKeySource();
 var clock = new SystemClock();
 
 var app = TuiApp.Create(
-    new JsonTodoRepository(JsonTodoRepository.DefaultDirectory),
+    new JsonTodoRepository(start.Directory ?? JsonTodoRepository.DefaultDirectory, start.Markdown),
     clock,
     new PowerShellClipboard(),
     keys,
     new ExternalEditorLauncher(terminal, AnsiConsole.Console),
-    new ExplorerFolderOpener());
+    new ExplorerFolderOpener(),
+    path => new JsonTodoRepository(path, markdownDescriptions: true));
 
 new ConsoleHost(app, keys, terminal, AnsiConsole.Console, clock).Run();
 return 0;
