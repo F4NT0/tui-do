@@ -10,7 +10,7 @@ namespace TuiDo.Infrastructure;
 /// Stores tasks and lists as indented JSON. With <paramref name="markdownDescriptions"/> the task notes are kept out of
 /// tasks.json and written to <c>descriptions/{code}-{title}.md</c> instead.
 /// </summary>
-internal sealed partial class JsonTodoRepository(string directory, bool markdownDescriptions = false) : ITodoRepository
+internal sealed partial class JsonTodoRepository(string directory, bool markdownDescriptions = false) : ITodoRepository, IDescriptionStore
 {
     private static readonly JsonSerializerOptions Indented = new() { WriteIndented = true };
 
@@ -22,6 +22,9 @@ internal sealed partial class JsonTodoRepository(string directory, bool markdown
             Modifiers = { type => { if (type.Type == typeof(TodoItem)) type.Properties.Remove(type.Properties.First(p => p.Name == nameof(TodoItem.Notes))); } },
         },
     };
+
+    /// <summary>Windows' forbidden characters on every OS, so the same task gets the same file name (and the folder stays portable).</summary>
+    private const string InvalidFileNameChars = "<>:\"/\\|?*";
 
     public static string DefaultDirectory { get; } =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "tui-do");
@@ -48,13 +51,17 @@ internal sealed partial class JsonTodoRepository(string directory, bool markdown
         var items = Load<TodoItem>(ItemsPath);
         if (!markdownDescriptions || !Directory.Exists(DescriptionsPath)) return items;
         foreach (var item in items.Where(i => i.Code > 0))
-        {
-            var file = Directory.EnumerateFiles(DescriptionsPath, "*.md").FirstOrDefault(f =>
-                Path.GetFileName(f) is var n && (n == $"{item.Code}.md" || n.StartsWith($"{item.Code}-", StringComparison.Ordinal)));
-            if (file != null) item.Notes = File.ReadAllText(file);
-        }
+            if (FindDescription(item.Code) is { } file) item.Notes = File.ReadAllText(file);
         return items;
     }
+
+    private string? FindDescription(int code) =>
+        !Directory.Exists(DescriptionsPath) ? null : Directory.EnumerateFiles(DescriptionsPath, "*.md").FirstOrDefault(f =>
+            Path.GetFileName(f) is var n && (n == $"{code}.md" || n.StartsWith($"{code}-", StringComparison.Ordinal)));
+
+    /// <summary>The existing description file of the task (found by its code), or the path it will get when it is created; null without markdown descriptions.</summary>
+    string? IDescriptionStore.DescriptionPathFor(TodoItem item) =>
+        !markdownDescriptions ? null : FindDescription(item.Code) ?? Path.Combine(DescriptionsPath, DescriptionFileName(item));
 
     public List<CustomList> LoadLists() => Load<CustomList>(ListsPath);
 
@@ -88,8 +95,7 @@ internal sealed partial class JsonTodoRepository(string directory, bool markdown
 
     internal static string DescriptionFileName(TodoItem item)
     {
-        var invalid = Path.GetInvalidFileNameChars();
-        var title = new string(item.Title.Select(c => invalid.Contains(c) ? ' ' : c).ToArray());
+        var title = new string(item.Title.Select(c => char.IsControl(c) || InvalidFileNameChars.Contains(c) ? ' ' : c).ToArray());
         title = WhiteSpace().Replace(title, " ").Trim().TrimEnd('.');
         if (title.Length > 80) title = title[..80].TrimEnd();
         return title.Length == 0 ? $"{item.Code}.md" : $"{item.Code}-{title}.md";

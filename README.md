@@ -61,6 +61,16 @@ Every task has a code (`#1`, `#2`, ...), a date, a time, a status, a priority an
 
 ## Getting started
 
+### Quick install (Windows 11, PowerShell)
+
+One line that downloads the installer from the latest release into the temp folder and starts it:
+
+```powershell
+iwr https://github.com/F4NT0/tui-do/releases/latest/download/tuido.Installer.exe -OutFile "$env:TEMP\tuido.Installer.exe"; & "$env:TEMP\tuido.Installer.exe"
+```
+
+The installer then downloads `tuido.exe` from the same release, copies it to `%LOCALAPPDATA%\Programs\tuido` and adds it to your user `PATH`. Open a new terminal and run `tuido`. Each release must have `tuido.Installer.exe` and `tuido.exe` attached as assets.
+
 ### Run from source
 
 ```bash

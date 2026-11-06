@@ -60,7 +60,7 @@ internal sealed class FakeEditorLauncher : IEditorLauncher
 
     public bool IsInstalled(EditorInfo editor) => Installed.Contains(editor.Executable);
 
-    public string Edit(EditorInfo editor, string text)
+    public string Edit(EditorInfo editor, string text, string? file = null)
     {
         LaunchedWith = editor;
         ReceivedText = text;

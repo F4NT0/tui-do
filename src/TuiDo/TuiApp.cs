@@ -49,7 +49,7 @@ internal sealed class TuiApp
         // Order matters: modals first, then the browsing modes, with the main handler as the fallback.
         IKeyHandler[] handlers =
         [
-            new EditorPickerKeyHandler(state, editors, log),
+            new EditorPickerKeyHandler(state, editors, log, service),
             new CalendarKeyHandler(state, clock),
             .. repositoryFactory is null ? Array.Empty<IKeyHandler>() : [new DirectoryPickerKeyHandler(state, service, repositoryFactory, log)],
             new DataLocationKeyHandler(state, service, folders, log),

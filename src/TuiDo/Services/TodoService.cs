@@ -29,6 +29,9 @@ internal sealed class TodoService
         Load();
     }
 
+    /// <summary>The markdown file that holds the description of <paramref name="item"/>, or null when descriptions live in tasks.json.</summary>
+    public string? DescriptionPath(TodoItem item) => item.Code > 0 ? (_repository as IDescriptionStore)?.DescriptionPathFor(item) : null;
+
     public string DataDirectory => Path.GetDirectoryName(ItemsPath) ?? ItemsPath;
 
     private void Load()

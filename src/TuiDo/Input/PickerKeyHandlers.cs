@@ -76,7 +76,7 @@ internal sealed class MovePickerKeyHandler(AppState state, TodoService service) 
     }
 }
 
-internal sealed class EditorPickerKeyHandler(AppState state, IEditorLauncher launcher, NotificationLog log) : IKeyHandler
+internal sealed class EditorPickerKeyHandler(AppState state, IEditorLauncher launcher, NotificationLog log, TodoService? service = null) : IKeyHandler
 {
     public bool IsActive => state.EditorPick != null;
 
@@ -103,7 +103,7 @@ internal sealed class EditorPickerKeyHandler(AppState state, IEditorLauncher lau
         try
         {
             var form = state.TaskForm!;
-            form.Notes = launcher.Edit(editor, form.Notes);
+            form.Notes = launcher.Edit(editor, form.Notes, form.Existing is { } task ? service?.DescriptionPath(task) : null);
             log.Success($"About updated from {editor.Name}");
         }
         catch (Exception e) when (e is IOException or InvalidOperationException or System.ComponentModel.Win32Exception)

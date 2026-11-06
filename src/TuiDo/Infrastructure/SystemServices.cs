@@ -75,12 +75,13 @@ internal sealed class ExternalEditorLauncher(ITerminal terminal, IAnsiConsole co
 
     public bool IsInstalled(EditorInfo editor) => FindExecutable(editor.Executable) != null;
 
-    public string Edit(EditorInfo editor, string text)
+    public string Edit(EditorInfo editor, string text, string? file = null)
     {
         var path = FindExecutable(editor.Executable) ?? throw new FileNotFoundException($"{editor.Name} is not installed");
-        var temp = Path.Combine(Path.GetTempPath(), $"tui-do-{Guid.NewGuid():N}.md");
+        var temp = file ?? Path.Combine(Path.GetTempPath(), $"tui-do-{Guid.NewGuid():N}.md");
         try
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(temp))!);
             File.WriteAllText(temp, text, new UTF8Encoding(false));
             terminal.Clear();
             terminal.CursorVisible = true;
@@ -90,12 +91,18 @@ internal sealed class ExternalEditorLauncher(ITerminal terminal, IAnsiConsole co
                 ? new ProcessStartInfo("cmd.exe", $"/c \"\"{path}\" --wait \"{temp}\"\"") { UseShellExecute = false, CreateNoWindow = true }
                 : new ProcessStartInfo(path, $"\"{temp}\"") { UseShellExecute = false };
             using (var process = Process.Start(psi)) process?.WaitForExit();
-            return File.ReadAllText(temp).Replace("\r\n", "\n").TrimEnd('\n');
+            var edited = File.ReadAllText(temp).Replace("\r\n", "\n").TrimEnd('\n');
+            if (file != null && string.IsNullOrWhiteSpace(edited)) File.Delete(temp);
+            return edited;
         }
         finally
         {
-            try { File.Delete(temp); }
-            catch (IOException) { }
+            if (file == null)
+            {
+                try { File.Delete(temp); }
+                catch (IOException) { }
+            }
+
             terminal.CursorVisible = false;
             terminal.Clear();
         }

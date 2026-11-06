@@ -48,7 +48,13 @@ internal interface IEditorLauncher
     bool IsInstalled(EditorInfo editor);
 
     /// <summary>Opens <paramref name="text"/> in the editor and returns the edited text once it closes.</summary>
-    string Edit(EditorInfo editor, string text);
+    string Edit(EditorInfo editor, string text, string? file = null);
+}
+
+/// <summary>Implemented by repositories that keep each task's description in its own markdown file.</summary>
+internal interface IDescriptionStore
+{
+    string? DescriptionPathFor(TodoItem item);
 }
 
 internal interface ITodoRepository

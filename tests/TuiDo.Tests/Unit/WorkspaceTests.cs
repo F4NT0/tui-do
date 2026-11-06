@@ -1,3 +1,4 @@
+using TuiDo.Abstractions;
 using TuiDo.Domain;
 using TuiDo.Infrastructure;
 using TuiDo.Presentation;
@@ -48,6 +49,35 @@ public sealed class WorkspaceRepositoryTests : IDisposable
 
         Assert.Equal("# milk", File.ReadAllText(Path.Combine(Descriptions, "12-Buy milk.md")));
         Assert.DoesNotContain("Notes", File.ReadAllText(repo.ItemsPath));
+    }
+
+    [Fact]
+    public void The_description_path_points_at_the_existing_file_found_by_code()
+    {
+        var repo = new JsonTodoRepository(_dir, markdownDescriptions: true);
+        repo.SaveItems([new TodoItem { Code = 5, Title = "old title", Notes = "n" }]);
+
+        var path = ((IDescriptionStore)repo).DescriptionPathFor(new TodoItem { Code = 5, Title = "renamed in the form" });
+
+        Assert.Equal(Path.Combine(Descriptions, "5-old title.md"), path);
+    }
+
+    [Fact]
+    public void The_description_path_of_a_task_without_a_file_is_where_it_will_be_created()
+    {
+        var repo = new JsonTodoRepository(_dir, markdownDescriptions: true);
+
+        var path = ((IDescriptionStore)repo).DescriptionPathFor(new TodoItem { Code = 2, Title = "fresh" });
+
+        Assert.Equal(Path.Combine(Descriptions, "2-fresh.md"), path);
+    }
+
+    [Fact]
+    public void Inline_notes_have_no_description_path()
+    {
+        var repo = new JsonTodoRepository(_dir);
+
+        Assert.Null(((IDescriptionStore)repo).DescriptionPathFor(new TodoItem { Code = 2, Title = "x" }));
     }
 
     [Fact]
