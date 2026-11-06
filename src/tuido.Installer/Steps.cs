@@ -111,6 +111,13 @@ internal static class Steps
         return File.Exists(exe) ? exe : throw new FileNotFoundException("tuido.exe was not found after extraction.", exe);
     }
 
+    public static bool IsInPath()
+    {
+        using var key = Registry.CurrentUser.OpenSubKey("Environment");
+        var current = key?.GetValue("Path", "", RegistryValueOptions.DoNotExpandEnvironmentNames) as string ?? "";
+        return current.Split(';', StringSplitOptions.RemoveEmptyEntries).Any(p => string.Equals(p.TrimEnd('\\'), InstallDir, StringComparison.OrdinalIgnoreCase));
+    }
+
     public static string AddToPath()
     {
         using var key = Registry.CurrentUser.OpenSubKey("Environment", true) ?? throw new InvalidOperationException("Could not open the user environment.");

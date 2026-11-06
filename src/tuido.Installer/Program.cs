@@ -10,6 +10,7 @@ if (!OperatingSystem.IsWindows())
     return 1;
 }
 
+AnsiConsole.WriteLine();
 foreach (var line in new[]
 {
     "████████╗██╗   ██╗██╗      ██████╗  ██████╗ ",
@@ -20,6 +21,30 @@ foreach (var line in new[]
     "   ╚═╝    ╚═════╝ ╚═╝      ╚═════╝  ╚═════╝ ",
 }) AnsiConsole.MarkupLine($"[deepskyblue1]{line}[/]");
 AnsiConsole.MarkupLine("\n[bold deepskyblue1]tuido installer[/] [grey]- installs .NET 10, JetBrainsMono Nerd Font and the latest tuido release[/]\n");
+
+var dotnetInstalled = Steps.IsDotNet10Installed();
+var fontInstalled = Steps.IsNerdFontInstalled();
+var appInstalled = File.Exists(Path.Combine(Steps.InstallDir, "tuido.exe"));
+var pathConfigured = Steps.IsInPath();
+string Status(bool done, string yes = "already installed") => done ? $"[green]{yes}[/]" : "[yellow]will be installed[/]";
+
+AnsiConsole.MarkupLine("[bold]The installer will perform these steps:[/]\n");
+var plan = new Table().Border(TableBorder.Rounded).AddColumn("Step").AddColumn("Status");
+plan.AddRow("1. .NET 10 runtime", Status(dotnetInstalled));
+plan.AddRow("2. JetBrainsMono Nerd Font", Status(fontInstalled));
+plan.AddRow("3. Download latest tuido release", "[yellow]will be downloaded[/]");
+plan.AddRow("4. Install tuido", $"{(appInstalled ? "[yellow]will be updated[/]" : "[yellow]will be installed[/]")} [grey]({Markup.Escape(Steps.InstallDir)})[/]");
+plan.AddRow("5. Configure PATH", Status(pathConfigured, "already configured"));
+plan.AddRow("6. Verify installation", "[yellow]pending[/]");
+AnsiConsole.Write(plan);
+AnsiConsole.WriteLine();
+
+if (!AnsiConsole.Confirm("Do you want to proceed with the installation?"))
+{
+    AnsiConsole.MarkupLine("\n[grey]Installation cancelled.[/]");
+    return 0;
+}
+AnsiConsole.WriteLine();
 
 var temp = Path.Combine(Path.GetTempPath(), "tuido-installer-" + Guid.NewGuid().ToString("N")[..8]);
 Directory.CreateDirectory(temp);
@@ -82,7 +107,17 @@ foreach (var (step, ok, detail) in results)
 AnsiConsole.Write(table);
 
 var success = results.Count == 6 && results.All(r => r.Ok);
-AnsiConsole.MarkupLine(success
-    ? $"\n[bold green]tuido {Markup.Escape(tag)} was installed.[/] [grey]Open a new terminal, select the JetBrainsMono Nerd Font and run[/] [bold deepskyblue1]tuido[/]"
-    : "\n[bold red]Installation failed.[/]");
+if (success)
+{
+    AnsiConsole.MarkupLine($"\n[bold green]tuido {Markup.Escape(tag)} was installed.[/]\n");
+    AnsiConsole.MarkupLine($"[bold]Installed at:[/]  {Markup.Escape(Steps.InstallDir)}");
+    AnsiConsole.MarkupLine($"[bold]Added to PATH:[/] {Markup.Escape(Steps.InstallDir)} [grey](command:[/] [bold deepskyblue1]tuido[/][grey])[/]");
+    AnsiConsole.MarkupLine("\n[grey]Open a new terminal, select the JetBrainsMono Nerd Font and try:[/]\n");
+    AnsiConsole.MarkupLine("  [bold deepskyblue1]tuido[/]              [grey]open the app[/]");
+    AnsiConsole.MarkupLine("  [bold deepskyblue1]tuido --help[/]       [grey]list all commands[/]");
+    AnsiConsole.MarkupLine("  [bold deepskyblue1]tuido --version[/]    [grey]show version and check for updates[/]");
+    AnsiConsole.MarkupLine("  [bold deepskyblue1]tuido --today[/]      [grey]show today's tasks[/]");
+    AnsiConsole.MarkupLine("  [bold deepskyblue1]tuido --uninstall[/]  [grey]remove tuido[/]");
+}
+else AnsiConsole.MarkupLine("\n[bold red]Installation failed.[/]");
 return success ? 0 : 1;
