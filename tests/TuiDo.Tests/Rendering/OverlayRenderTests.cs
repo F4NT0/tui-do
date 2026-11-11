@@ -141,26 +141,21 @@ public class CalendarRenderTests
     }
 
     [Fact]
-    public void Lists_the_tasks_of_the_selected_day_below_the_grid()
+    public void Enter_lists_the_tasks_of_the_selected_day_with_their_list()
     {
-        var app = App().FocusTasks().Press('c');
+        var app = App().FocusTasks().Press('c').Press(ConsoleKey.Enter);
         var today = app.Screen();
 
-        Assert.Contains("Tasks on 03/11", today);
+        Assert.Contains("03/11/2026", today);
         Assert.Contains("#1 today one", today);
         Assert.Contains("#2 today two", today);
-        Assert.Contains("Completed", today.Split("Tasks on 03/11")[1]);
-
-        app.Press(ConsoleKey.RightArrow);
-        var tomorrow = app.Screen();
-        Assert.Contains("Tasks on 04/11", tomorrow);
-        Assert.Contains("#3 tomorrow", tomorrow.Split("Tasks on 04/11")[1]);
+        Assert.DoesNotContain("Tasks on 03/11", today);
     }
 
     [Fact]
     public void Days_without_tasks_say_so()
     {
-        var app = App().FocusTasks().Press('c').Press(ConsoleKey.DownArrow);
+        var app = App().FocusTasks().Press('c').Press(ConsoleKey.DownArrow).Press(ConsoleKey.Enter);
 
         Assert.Contains("No tasks this day.", app.Screen());
     }
@@ -182,7 +177,6 @@ public class CalendarRenderTests
 
         app.Press('t');
         Assert.Contains("November 2026", app.Screen());
-        Assert.Contains("Tasks on 03/11", app.Screen());
     }
 
     [Fact]
@@ -203,7 +197,7 @@ public class CalendarRenderTests
             var work = a.AddList("Work");
             a.AddTask("in list", listId: work.Id, code: 1);
         });
-        app.FocusTasks().Press('c');
+        app.FocusTasks().Press('c').Press(ConsoleKey.Enter);
 
         Assert.Contains("#1 in list", app.Screen());
     }
@@ -310,7 +304,7 @@ public class FooterRenderTests
     public void Each_modal_has_its_own_footer()
     {
         Assert.Contains("Ctrl+V: paste", Footer(new TestApp().Press('n').Screen()));
-        Assert.Contains("Enter: create", Footer(new TestApp().Press('l').Screen()));
+        Assert.Contains("Enter: save", Footer(new TestApp().Press('l').Screen()));
         Assert.Contains("↑↓: select | Enter: confirm", Footer(TestApp.With(a => a.AddTask("x")).FocusTasks().Press(' ').Screen()));
         Assert.Contains("Type a position", Footer(TestApp.With(a => a.AddTask("x")).FocusTasks().Press('P').Screen()));
         Assert.Contains("↑↓: move task", Footer(TestApp.With(a => a.AddTask("x")).FocusTasks().Press('p').Screen()));

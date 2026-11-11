@@ -99,6 +99,7 @@ Open a new terminal and run `tuido` from anywhere. The installer copies the prog
 | `tuido` | Open the main menu and then the app. |
 | `tuido --version` (`-v`) | Show the version and check whether the GitHub repository has a release with a different version. |
 | `tuido --help` (`-h`) | Show a tabbed help panel: CLI commands plus the keys of every panel. |
+| `tuido --update` | Look for a newer release on GitHub and, if there is one, download `tuido.exe` from it and replace the installed copy. |
 | `tuido --today` | Print today's tasks in a table. |
 | `tuido --install` | Interactive installer. |
 | `tuido --uninstall` | Interactive uninstaller. Removes the `PATH` entry, the program files and the default data folder, after asking for confirmation. |
@@ -222,7 +223,7 @@ In a data directory, each description is stored as `descriptions/{code}-{title}.
 
 ### 7. Custom lists and icons
 
-Press `l` to create a list with a name and a Nerd Font icon. In the *Icon* field you can type a hex code (`f522`), a `\uXXXX` escape, paste the glyph, or press `i` to open a picker with ready-made icons. Move with the arrow keys, `Enter` chooses and `Esc` goes back to the form.
+Press `l` to create a list with a name, a Nerd Font icon and a color (`←` / `→` in the *Color* field). Press `e` on a list to edit it. The color tints the icon and name, and *Event* tasks use their list's color. In the *Icon* field you can type a hex code (`f522`), a `\uXXXX` escape, paste the glyph, or press `i` to open a picker with ready-made icons. Move with the arrow keys, `Enter` chooses and `Esc` goes back to the form.
 
 Press `x` on a custom list to delete it; its tasks return to My Day or Tasks.
 
@@ -244,7 +245,7 @@ Press `m` to move a task to a custom list (or back to My Day / Tasks).
 
 ### 9. Calendar
 
-Press `c` in the task panel for a month calendar with the number of tasks and their statuses per day. `Enter` on a day lists its tasks by time.
+Press `c` in the task panel for a month calendar with the number of tasks and their statuses per day. `Enter` on a day lists its tasks by time, with the list each one belongs to.
 
 <p align="center">
   <img src="images/rounded/calendar-see-tasks.png" alt="Calendar" width="700" />
@@ -343,6 +344,8 @@ All JSON files are written **indented**. Where the data lives depends on how you
 |---|---|---|
 | Create / open directory | The chosen directory: `tasks.json`, `lists.json`, `descriptions/` | One markdown file per task: `descriptions/{code}-{title}.md` |
 | Default data | `%LOCALAPPDATA%\tui-do`: `tasks.json`, `lists.json` | Stored in `tasks.json` as the `Notes` field |
+
+Run `tuido --update` to upgrade an installed copy. See `release/` for the change notes of each version.
 
 `tuido --uninstall` deletes only the default data folder; your own directories are never touched.
 

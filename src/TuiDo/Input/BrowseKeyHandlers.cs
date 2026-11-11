@@ -29,6 +29,7 @@ internal sealed class MainKeyHandler(AppState state, BrowseModel browse, TodoSer
             case ConsoleKey.L: state.ListForm = new ListForm(); break;
             case ConsoleKey.M when item != null: OpenMovePicker(item); break;
             case ConsoleKey.X when !state.FocusRight && service.IsCustom(state.Menu): DeleteSelectedList(); break;
+            case ConsoleKey.E when !state.FocusRight && service.IsCustom(state.Menu): state.ListForm = ListForm.ForEdit(service.CustomAt(state.Menu)); break;
             case ConsoleKey.E when item != null: state.TaskForm = TaskForm.ForEdit(item); break;
             case ConsoleKey.UpArrow or ConsoleKey.K: MoveCursor(-1, list.Count); break;
             case ConsoleKey.DownArrow or ConsoleKey.J: MoveCursor(1, list.Count); break;

@@ -10,7 +10,7 @@ internal sealed class CliApp(IAnsiConsole console, IReleaseChecker releases, Ins
     ITodoRepository? repository = null, IClock? clock = null)
 {
     public static bool IsCliCommand(string[] args) =>
-        args.Length > 0 && args[0].ToLowerInvariant() is "--version" or "-v" or "--help" or "-h" or "--install" or "--uninstall" or "--today";
+        args.Length > 0 && args[0].ToLowerInvariant() is "--version" or "-v" or "--help" or "-h" or "--install" or "--uninstall" or "--update" or "--today";
 
     public async Task<int> RunAsync(string[] args)
     {
@@ -20,6 +20,7 @@ internal sealed class CliApp(IAnsiConsole console, IReleaseChecker releases, Ins
             case "--help" or "-h": Help(); return 0;
             case "--today":
                 return TodayCommand.Run(console, repository ?? new JsonTodoRepository(JsonTodoRepository.DefaultDirectory), clock ?? new SystemClock());
+            case "--update": return await new Updater(console, releases).RunAsync();
             case "--install": return installer.Install();
             case "--uninstall": return installer.Uninstall();
             default: return 1;

@@ -13,7 +13,7 @@ internal static class TaskDetailView
 
     public static string Title(TodoItem item) => $"#{item.Code} {item.Title}";
 
-    public static IRenderable Render(IAnsiConsole console, AppState state, TodoItem item, DateTime today, int width, int height)
+    public static IRenderable Render(IAnsiConsole console, AppState state, TodoItem item, DateTime today, int width, int height, IReadOnlyList<CustomList>? lists = null)
     {
         var statusName = item.IsOverdue(today) ? "Overdue" : StatusCatalog.Name(item.Status);
         var waiting = item.Status == Status.Blocked && item.BlockedBy != null ? $"  ·  waiting for [bold]#{item.BlockedBy}[/]" : "";
@@ -25,7 +25,7 @@ internal static class TaskDetailView
         var percent = view.Total <= view.Visible ? "" : $"  ·  {(int)(100.0 * (state.Scroll + view.Visible) / Math.Max(1, view.Total))}%";
 
         return new Rows(
-            new Markup($"{Theme.ItemIcon(item, today)}  [bold]{Markup.Escape(item.Title)}[/]  {Theme.Star(item.Important)}"),
+            new Markup($"{Theme.ItemIcon(item, today, lists)}  [bold]{Markup.Escape(item.Title)}[/]  {Theme.Star(item.Important)}"),
             new Markup($"[grey]#{item.Code}  ·  {item.Date:dd/MM/yyyy} {item.TimeText}  ·  {statusName}{waiting}{percent}[/]"),
             new Text(""),
             view);

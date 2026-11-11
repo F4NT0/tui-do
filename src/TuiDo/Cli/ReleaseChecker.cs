@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace TuiDo.Cli;
 
-internal sealed record ReleaseInfo(string Tag, string Url);
+internal sealed record ReleaseInfo(string Tag, string Url, string? AssetUrl = null);
 
 internal interface IReleaseChecker
 {
@@ -14,7 +14,10 @@ internal interface IReleaseChecker
 
 internal sealed class GitHubReleaseChecker : IReleaseChecker
 {
-    private sealed record Dto([property: JsonPropertyName("tag_name")] string TagName, [property: JsonPropertyName("html_url")] string HtmlUrl);
+    private sealed record AssetDto([property: JsonPropertyName("name")] string Name, [property: JsonPropertyName("browser_download_url")] string Url);
+
+    private sealed record Dto([property: JsonPropertyName("tag_name")] string TagName, [property: JsonPropertyName("html_url")] string HtmlUrl,
+        [property: JsonPropertyName("assets")] List<AssetDto>? Assets);
 
     public async Task<ReleaseInfo?> GetLatestAsync(CancellationToken cancellationToken = default)
     {
@@ -26,7 +29,8 @@ internal sealed class GitHubReleaseChecker : IReleaseChecker
         if (response.StatusCode == HttpStatusCode.NotFound) return null;
         response.EnsureSuccessStatusCode();
         var dto = await response.Content.ReadFromJsonAsync<Dto>(cancellationToken);
-        return dto is null ? null : new ReleaseInfo(dto.TagName, dto.HtmlUrl);
+        return dto is null ? null : new ReleaseInfo(dto.TagName, dto.HtmlUrl,
+            dto.Assets?.FirstOrDefault(a => a.Name.Equals(AppInfo.ExeName, StringComparison.OrdinalIgnoreCase))?.Url);
     }
 }
 

@@ -21,7 +21,7 @@ internal sealed class AppView(AppState state, BrowseModel browse, TodoService se
         {
             var item = list[state.Selected];
             title = TaskDetailView.Title(item);
-            content = TaskDetailView.Render(console, state, item, today, width, height);
+            content = TaskDetailView.Render(console, state, item, today, width, height, service.Lists);
         }
 
         var modal = CurrentModal(list.Count, today);
@@ -58,7 +58,7 @@ internal sealed class AppView(AppState state, BrowseModel browse, TodoService se
         if (state.MovePick is { } move) return Modals.MoveToList(service.Lists, move);
         if (state.StatusPick is { } status) return Modals.StatusPicker(status);
         if (state.PriorityInput is { } input) return Modals.Priority(input, visibleCount);
-        if (state.BlockPick is { } block) return Modals.BlockedBy(state.BlockerCandidates, block, today);
+        if (state.BlockPick is { } block) return Modals.BlockedBy(state.BlockerCandidates, block, today, service.Lists);
         return null;
     }
 }

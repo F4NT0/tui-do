@@ -352,7 +352,7 @@ public class NewListRenderTests
         Assert.Contains("Name", screen);
         Assert.Contains("Icon (e.g. f522, \\uf522 or paste the glyph)", screen);
         Assert.Contains($"Preview: {Glyph.MyDay}  Work", screen);
-        Assert.Contains("Enter: create", screen);
+        Assert.Contains("Enter: save", screen);
     }
 
     [Fact]

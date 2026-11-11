@@ -44,8 +44,14 @@ internal static class Theme
 
     public static string StatusIcon(Status status) => $"[{StatusColor(status)}]{StatusGlyph(status)}[/]";
 
-    public static string ItemIcon(TodoItem item, DateTime today) =>
-        item.IsOverdue(today) ? "[yellow]\uea6c[/]" : StatusIcon(item.Status);
+    public static string ItemIcon(TodoItem item, DateTime today, IReadOnlyList<CustomList>? lists = null)
+    {
+        if (item.IsOverdue(today)) return "[yellow]\uea6c[/]";
+        var color = item.Status == Status.Event && item.ListId != null ? lists?.FirstOrDefault(l => l.Id == item.ListId)?.Color : null;
+        return color == null ? StatusIcon(item.Status) : $"[{color}]{StatusGlyph(item.Status)}[/]";
+    }
 
-    public static string ListIcon(CustomList list) => $"[{Cyan}]{Markup.Escape(list.Icon)}[/]";
+    public static string ListColor(CustomList list) => list.Color ?? Cyan;
+
+    public static string ListIcon(CustomList list) => $"[{ListColor(list)}]{Markup.Escape(list.Icon)}[/]";
 }

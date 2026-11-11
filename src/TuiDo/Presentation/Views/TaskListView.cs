@@ -25,11 +25,11 @@ internal static class TaskListView
             var marker = selected && state.Reorder ? "[orange1]↕[/]" : selected ? "[orange1]>[/]" : " ";
             var blocked = item.Status == Status.Blocked && item.BlockedBy != null ? $"  [grey]blocked by #{item.BlockedBy}[/]" : "";
             var origin = state.Menu < Services.BuiltInLists.Count && lists.FirstOrDefault(l => l.Id == item.ListId) is { } from
-                ? $"  [{Theme.Cyan}]{Markup.Escape(from.Icon)}[/] [grey]{Markup.Escape(from.Name)}[/]" : "";
+                ? $"  {Theme.ListIcon(from)} [grey]{Markup.Escape(from.Name)}[/]" : "";
             var time = item.Time is null ? "" : $"  {item.TimeText}";
             var notes = string.IsNullOrWhiteSpace(item.Notes) ? "" : "  \uf249 notes";
 
-            rows.Add(new Markup($"{marker} {rank}{Theme.ItemIcon(item, today)}  [grey]#{item.Code}[/] {title}  {Theme.Star(item.Important)}"));
+            rows.Add(new Markup($"{marker} {rank}{Theme.ItemIcon(item, today, lists)}  [grey]#{item.Code}[/] {title}  {Theme.Star(item.Important)}"));
             rows.Add(new Markup($"     {(ranked ? "   " : "")}[grey]{item.Date:dd/MM/yyyy}{time}{notes}[/]{origin}{blocked}"));
         }
 

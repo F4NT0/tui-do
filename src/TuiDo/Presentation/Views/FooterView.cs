@@ -10,7 +10,7 @@ internal static class FooterView
         : s.TaskForm != null ? "Enter: save | Shift+Enter: new line (About) | Ctrl+V: paste | Ctrl+E: open About in editor | Ctrl+A: All Day | Tab: next field | Esc: cancel"
         : s.DirPick != null ? "↑↓: move | →: enter | ←: up | Enter: open directory | Esc: cancel"
         : s.ListForm is { IconPick: not null } ? "←→↑↓: move | Enter: choose icon | Esc: back"
-        : s.ListForm != null ? "Enter: create | Tab: next field | i: icon list (Icon field) | Ctrl+V: paste | Esc: cancel"
+        : s.ListForm != null ? "Enter: save | Tab: next field | i: icon list (Icon field) | ←→: color (Color field) | Ctrl+V: paste | Esc: cancel"
         : s.StatusPick != null || s.BlockPick != null || s.MovePick != null || s.EditorPick != null ? "↑↓: select | Enter: confirm | Esc: cancel"
         : s.PriorityInput != null ? "Type a position | Enter: confirm | Esc: cancel"
         : s.Reorder ? "↑↓: move task | Enter/p: done"

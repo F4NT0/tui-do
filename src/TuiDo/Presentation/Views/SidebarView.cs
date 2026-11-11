@@ -39,7 +39,8 @@ internal static class SidebarView
         var name = Markup.Escape(service.MenuName(index));
         var icon = service.IsCustom(index) ? Theme.ListIcon(service.CustomAt(index)) : Theme.MenuIcons[index];
         var marker = selected ? $"[bold {Theme.Accent}]>[/]" : " ";
-        var label = selected ? $"[bold {Theme.Accent}]{name}[/]" : name;
+        var tint = service.IsCustom(index) ? service.CustomAt(index).Color : null;
+        var label = selected ? $"[bold {tint ?? Theme.Accent}]{name}[/]" : tint != null ? $"[{tint}]{name}[/]" : name;
         return new Markup($"{marker} {icon}  {label} [grey]({service.MenuCountOf(index)})[/]");
     }
 }

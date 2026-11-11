@@ -86,6 +86,28 @@ internal sealed class ListForm
     public const int NameField = 0;
     public const int IconField = 1;
 
+    public const int ColorField = 2;
+
+    public static readonly string[] Colors = 
+    [
+        "#FFD700", "#FF9F1C", "#C77DFF", "#FF66C4", "#7DF9FF",
+        "#F8F8F2", "#FFC857", "#D8B4FE", "#F4A261", "#FAF3DD",
+    ];
+
+    public CustomList? Editing { get; init; }
+
+    public int ColorIndex { get; set; }
+
+    public string Color => Colors[ColorIndex];
+
+    public static ListForm ForEdit(CustomList list) => new()
+    {
+        Editing = list,
+        Name = list.Name,
+        Icon = list.Icon,
+        ColorIndex = Math.Max(0, Array.FindIndex(Colors, c => string.Equals(c, list.Color, StringComparison.OrdinalIgnoreCase))),
+    };
+
     public string Name { get; set; } = "";
 
     public string Icon { get; set; } = "";

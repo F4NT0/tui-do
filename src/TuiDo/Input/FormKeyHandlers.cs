@@ -92,7 +92,7 @@ internal sealed class ListFormKeyHandler(AppState state, TodoService service, IC
         }
 
         if (key.Key == ConsoleKey.Escape) { state.ListForm = null; return; }
-        if (KeyChords.IsPaste(key)) { form.Value += clipboard.GetText().Replace("\n", " "); return; }
+        if (form.Field != ListForm.ColorField && KeyChords.IsPaste(key)) { form.Value += clipboard.GetText().Replace("\n", " "); return; }
 
         if (key.Key == ConsoleKey.Enter)
         {
@@ -103,14 +103,27 @@ internal sealed class ListFormKeyHandler(AppState state, TodoService service, IC
                 return;
             }
 
-            state.Menu = Services.BuiltInLists.Count + service.AddList(form.Name, form.Icon);
-            state.Selected = 0;
+            if (form.Editing is { } editing) service.UpdateList(editing, form.Name, form.Icon, form.Color);
+            else
+            {
+                state.Menu = Services.BuiltInLists.Count + service.AddList(form.Name, form.Icon, form.Color);
+                state.Selected = 0;
+            }
+
             state.ListForm = null;
             return;
         }
 
         form.Error = "";
-        if (key.Key is ConsoleKey.Tab or ConsoleKey.UpArrow or ConsoleKey.DownArrow) { form.Field = 1 - form.Field; return; }
+        if (key.Key is ConsoleKey.Tab or ConsoleKey.DownArrow) { form.Field = (form.Field + 1) % 3; return; }
+        if (key.Key == ConsoleKey.UpArrow) { form.Field = (form.Field + 2) % 3; return; }
+        if (form.Field == ListForm.ColorField)
+        {
+            var step = key.Key == ConsoleKey.LeftArrow ? -1 : key.Key == ConsoleKey.RightArrow ? 1 : 0;
+            form.ColorIndex = (form.ColorIndex + step + ListForm.Colors.Length) % ListForm.Colors.Length;
+            return;
+        }
+
         if (KeyChords.TryEdit(key, form.Value, out var edited)) form.Value = edited;
     }
 

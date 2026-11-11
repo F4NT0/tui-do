@@ -187,12 +187,20 @@ internal sealed class TodoService
     // ---- custom lists ----
 
     /// <summary>Creates a list and returns its index among the custom lists.</summary>
-    public int AddList(string name, string iconText)
+    public int AddList(string name, string iconText, string? color = null)
     {
-        var list = new CustomList { Name = name.Trim(), Icon = IconParser.Parse(iconText) };
+        var list = new CustomList { Name = name.Trim(), Icon = IconParser.Parse(iconText), Color = color };
         _lists.Add(list);
         SaveLists($"List '{list.Name}' created");
         return _lists.Count - 1;
+    }
+
+    public void UpdateList(CustomList list, string name, string iconText, string? color)
+    {
+        list.Name = name.Trim();
+        list.Icon = IconParser.Parse(iconText);
+        list.Color = color;
+        SaveLists($"List '{list.Name}' updated");
     }
 
     public void DeleteList(CustomList list)

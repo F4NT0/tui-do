@@ -20,8 +20,8 @@ internal static class Modals
     public static IRenderable StatusPicker(int selected) =>
         Picker("Status", StatusCatalog.Ordered.Select(StatusCatalog.Name), selected, 36, StatusCatalog.Ordered.Select(Theme.StatusIcon).ToList());
 
-    public static IRenderable BlockedBy(IReadOnlyList<TodoItem> candidates, int selected, DateTime today) =>
-        Picker("Blocked by", candidates.Select(c => $"#{c.Code} {c.Title}"), selected, 56, candidates.Select(c => Theme.ItemIcon(c, today)).ToList());
+    public static IRenderable BlockedBy(IReadOnlyList<TodoItem> candidates, int selected, DateTime today, IReadOnlyList<CustomList>? lists = null) =>
+        Picker("Blocked by", candidates.Select(c => $"#{c.Code} {c.Title}"), selected, 56, candidates.Select(c => Theme.ItemIcon(c, today, lists)).ToList());
 
     public static IRenderable MoveToList(IReadOnlyList<CustomList> lists, int selected) =>
         Picker("Move to list", new[] { "None (My Day / Tasks)" }.Concat(lists.Select(l => l.Name)), selected, 44,
@@ -84,36 +84,30 @@ internal static class Modals
                 : date == today.Date ? $"[bold green] {day,2} [/]"
                 : $"[grey] {day,2} [/]";
             var count = tasks.Count > 0 ? $" [bold]({tasks.Count})[/]" : "";
-            var icons = tasks.Count == 0 ? " " : string.Concat(tasks.Take(5).Select(t => Theme.ItemIcon(t, today))) + (tasks.Count > 5 ? "[grey]+[/]" : "");
+            var icons = tasks.Count == 0 ? " " : string.Concat(tasks.Take(5).Select(t => Theme.ItemIcon(t, today, service.Lists))) + (tasks.Count > 5 ? "[grey]+[/]" : "");
             cells.Add(new Markup($"{number}{count}\n{icons}"));
         }
 
         while (cells.Count % 7 != 0) cells.Add(new Text(" "));
         for (var r = 0; r < cells.Count; r += 7) table.AddRow(cells.Skip(r).Take(7));
 
-        var dayTasks = service.OnDate(selected).ToList();
-        IRenderable agenda = dayTasks.Count == 0
-            ? new Markup("[grey]No tasks this day.[/]")
-            : new Rows(dayTasks.Take(5).Select(t => new Markup(
-                $"{Theme.ItemIcon(t, today)}  [grey]#{t.Code}[/] {Markup.Escape(t.Title)}  [grey]{StatusCatalog.Name(t.Status)}[/]")));
-
         var calendar = Frame("\uf073 Calendar", new Rows(
             new Markup($"[bold]{selected:MMMM yyyy}[/]  [grey]·  {selected:dd/MM/yyyy}[/]"),
             table,
-            new Markup($"[bold {Theme.Orange}]Tasks on {selected:dd/MM}[/]"),
-            agenda,
             new Markup("[grey]←→↑↓: day  ·  PgUp/PgDn: month  ·  t: today  ·  Enter: day tasks  ·  Esc/c: close[/]")), width: null);
-        return dayOpen ? new Grid().AddColumn().AddColumn().AddRow(calendar, DayTasks(selected, dayTasks, today)) : calendar;
+        return dayOpen ? new Grid().AddColumn().AddColumn().AddRow(calendar, DayTasks(selected, service.OnDate(selected).ToList(), today, service.Lists)) : calendar;
     }
 
-    private static IRenderable DayTasks(DateTime day, IReadOnlyList<TodoItem> tasks, DateTime today)
+    private static IRenderable DayTasks(DateTime day, IReadOnlyList<TodoItem> tasks, DateTime today, IReadOnlyList<CustomList> lists)
     {
         IRenderable body = tasks.Count == 0
             ? new Markup("[grey]No tasks this day.[/]")
             : new Rows(tasks.Select(t =>
             {
                 var time = t.Time is null ? $"[green]{TodoItem.AllDay,-7}[/]" : $"[bold]{t.TimeText,-7}[/]";
-                return new Markup($"{time} {Theme.ItemIcon(t, today)}  [grey]#{t.Code}[/] {Markup.Escape(t.Title)}");
+                var from = lists.FirstOrDefault(l => l.Id == t.ListId);
+                var origin = from == null ? "" : $"  {Theme.ListIcon(from)} [grey]{Markup.Escape(from.Name)}[/]";
+                return new Markup($"{time} {Theme.ItemIcon(t, today, lists)}  [grey]#{t.Code}[/] {Markup.Escape(t.Title)}{origin}");
             }));
         return Frame($" {day:dd/MM/yyyy}", new Rows(body, new Text(""), new Markup("[grey]Esc: close[/]")), 44);
     }
@@ -149,10 +143,13 @@ internal static class Modals
         {
             Field("Name", form.Name, form.Field == ListForm.NameField),
             Field("Icon (e.g. f522, \\uf522 or paste the glyph)", form.Icon, form.Field == ListForm.IconField),
-            new Markup($"Preview: [{Theme.Cyan}]{Markup.Escape(IconParser.Parse(form.Icon))}[/]  {Markup.Escape(form.Name)}"),
+            new Panel(new Markup(string.Join(" ", ListForm.Colors.Select((c, i) =>
+                i == form.ColorIndex ? $"[black on {c}] ● [/]" : $"[{c}] ● [/]")))) { Border = BoxBorder.Rounded, Expand = true,
+                BorderStyle = Style.Parse(form.Field == ListForm.ColorField ? Theme.Accent : "grey"), Header = new PanelHeader("Color (←/→)") },
+            new Markup($"Preview: [{form.Color}]{Markup.Escape(IconParser.Parse(form.Icon))}  {Markup.Escape(form.Name)}[/]"),
         };
         if (form.Error != "") parts.Add(new Markup($"[red]{Markup.Escape(form.Error)}[/]"));
-        return Frame("\uf067 New list", new Rows(parts), 64);
+        return Frame(form.Editing == null ? "\uf067 New list" : "\uf040 Edit list", new Rows(parts), 64);
     }
 
     private static List<IRenderable> FormParts(TaskForm form)
